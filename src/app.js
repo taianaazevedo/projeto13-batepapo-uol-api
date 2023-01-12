@@ -14,21 +14,26 @@ app.use(cors())
 
 const mongoClient = new MongoClient(process.env.DATABASE_URL)
 
-let db;
 
 try {
-    mongoClient.connect();
-    db = mongoClient.db()
+    await mongoClient.connect();
     console.log('MongoDB conectado!');
 } catch (err) {
     console.log(err.message);
 }
+const db = mongoClient.db()
+
 
 let hora = dayjs().format("HH:mm:ss")
 console.log(hora)
 
+
+//REQUISITO 01
 app.post("/participants", async (req, res) => {
     const { name } = req.body
+
+    //FALTA FAZER AS VALIDAÇÕES 
+
 
     try {
         const usuarioExiste = await db.collection("participants").findOne({ name })
@@ -38,11 +43,12 @@ app.post("/participants", async (req, res) => {
         await db.collection("participants").insertOne({ name, lastStatus: Date.now() })
 
         await db.collection("messages").insertOne({
-            from: name, 
-            to: "Todos", 
-            text: "entra na sala...", 
+            from: name,
+            to: "Todos",
+            text: "entra na sala...",
             type: "status",
-            time: hora})
+            time: hora
+        })
 
         res.sendStatus(201)
 
@@ -51,10 +57,10 @@ app.post("/participants", async (req, res) => {
         console.log(err)
     }
 
-   
+
 })
 
-
+//REQUISITO 02
 app.get("/participants", async (req, res) => {
     try {
         const usuariosOnline = await db.collection("participants").find().toArray()
@@ -64,5 +70,44 @@ app.get("/participants", async (req, res) => {
     }
 })
 
-const PORT = 5001
+
+//REQUISITO 03
+app.post("/messages", async (req, res) => {
+    const { to, text, type } = req.body
+    const { user } = req.headers
+
+    try {
+
+        const remetente = await db.collection("participants").findOne({ name: user })
+        console.log(remetente)
+
+        if (!remetente) return res.status(422).send("Usuário não está logado")
+
+        const mensagens = db.collection("messages").insertOne({
+            from: user,
+            to,
+            text,
+            type,
+            time: hora
+        })
+
+        res.status(201).send(mensagens)
+    } catch (err) {
+        console.log(err)
+    }
+
+})
+
+// REQUISITO 04
+app.get("/messages", async (req, res) => {
+    try {
+        const mensagens = await db.collection("messages").find().toArray()
+        res.send(mensagens)
+    } catch (err) {
+        console.log(err)
+    }
+})
+
+
+const PORT = 5000
 app.listen(PORT, () => console.log(`Servidor rodando na porta: ${PORT}`))
