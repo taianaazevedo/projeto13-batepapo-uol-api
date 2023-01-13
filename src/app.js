@@ -38,7 +38,7 @@ app.post("/participants", async (req, res) => {
     try {
         const usuarioExiste = await db.collection("participants").findOne({ name })
 
-        if (usuarioExiste) return res.status(409).send("Esse nome já está sendo utilizado")
+        if (usuarioExiste) return res.sendStatus(409)
 
         await db.collection("participants").insertOne({ name, lastStatus: Date.now() })
 
@@ -79,7 +79,6 @@ app.post("/messages", async (req, res) => {
     try {
 
         const remetente = await db.collection("participants").findOne({ name: user })
-        console.log(remetente)
 
         if (!remetente) return res.status(422).send("Usuário não está logado")
 
@@ -100,14 +99,37 @@ app.post("/messages", async (req, res) => {
 
 // REQUISITO 04
 app.get("/messages", async (req, res) => {
+    const { limit } = req.query
+    
     try {
         const mensagens = await db.collection("messages").find().toArray()
+
+        if(limit) return res.send(mensagens.slice(-limit))
+
         res.send(mensagens)
+                
     } catch (err) {
         console.log(err)
     }
 })
 
+
+//REQUISITO 05
+app.post("/status", async (req, res) => {
+    const { user } = req.headers
+   
+    try {
+        const aindaOn = await db.collection("participants").findOne({name: user})
+
+        if(!aindaOn) return res.sendStatus(404)
+
+        await db.collection("participants").updateOne({name: user}, { $set: {lastStatus: Date.now()}})
+
+        res.sendStatus(200)
+    } catch (err) {
+        console.log(err)        
+    }
+})
 
 const PORT = 5000
 app.listen(PORT, () => console.log(`Servidor rodando na porta: ${PORT}`))
