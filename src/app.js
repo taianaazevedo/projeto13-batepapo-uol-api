@@ -32,8 +32,16 @@ console.log(hora)
 app.post("/participants", async (req, res) => {
     const { name } = req.body
 
-    //FALTA FAZER AS VALIDAÇÕES 
+    const nameSchema = joi.object({
+        name: joi.string().required()
+    })
 
+    const validar = nameSchema.validate({ name }, { abortEarly: false })
+
+    if (validar.error) {
+        const erros = validar.error.details.map((err) => err.message)
+        return res.status(422).send(erros)
+    }
 
     try {
         const usuarioExiste = await db.collection("participants").findOne({ name })
@@ -99,15 +107,18 @@ app.post("/messages", async (req, res) => {
 
 // REQUISITO 04
 app.get("/messages", async (req, res) => {
-    const { limit } = req.query
-    
+    const limit = Number(req.query.limit)
+
+
     try {
         const mensagens = await db.collection("messages").find().toArray()
 
-        if(limit) return res.send(mensagens.slice(-limit))
+        if (limit < 1 || typeof limit === "string") return res.sendStatus(422)
+
+        if (limit > 0) return res.send(mensagens.slice(-limit))
 
         res.send(mensagens)
-                
+
     } catch (err) {
         console.log(err)
     }
@@ -117,17 +128,18 @@ app.get("/messages", async (req, res) => {
 //REQUISITO 05
 app.post("/status", async (req, res) => {
     const { user } = req.headers
-   
+
+
     try {
-        const aindaOn = await db.collection("participants").findOne({name: user})
+        const aindaOn = await db.collection("participants").findOne({ name: user })
 
-        if(!aindaOn) return res.sendStatus(404)
+        if (!aindaOn) return res.sendStatus(404)
 
-        await db.collection("participants").updateOne({name: user}, { $set: {lastStatus: Date.now()}})
+        await db.collection("participants").updateOne({ name: user }, { $set: { lastStatus: Date.now() } })
 
         res.sendStatus(200)
     } catch (err) {
-        console.log(err)        
+        console.log(err)
     }
 })
 
