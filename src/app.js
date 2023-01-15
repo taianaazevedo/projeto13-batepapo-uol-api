@@ -128,7 +128,7 @@ app.get("/messages", async (req, res) => {
 
         if (limit < 1 || isNaN(limit)) return res.sendStatus(422)
 
-        if (limit > 0) return res.send(mensagens.slice(-limit))
+        if (limit > 0) return res.send(mensagens.slice(-limit).reverse())
 
         res.send(mensagens)
 
