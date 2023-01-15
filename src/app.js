@@ -120,7 +120,7 @@ app.post("/messages", async (req, res) => {
 
 // REQUISITO 04
 app.get("/messages", async (req, res) => {
-    const limit = req.query.limit ? Number(req.query.limit) : false
+    const limit = req.query.limit ? parseInt(req.query.limit) : false
     const { user } = req.headers
     const filtro = {
         $or: [
@@ -143,11 +143,11 @@ app.get("/messages", async (req, res) => {
         const mensagens = await db.collection("messages").find(filtro).toArray()
 
         if (limit < 0 || limit === 0 || isNaN(limit)) {
-            return res.sendStatus(422)            
+            return res.sendStatus(422)
         } else if (limit > 0) {
-            return res.send(mensagens.slice(-limit).reverse())
+            return res.send(mensagens.slice(-limit))
         } else {
-            res.send(mensagens.reverse())
+            res.send(mensagens)
         }
 
 
@@ -160,6 +160,26 @@ app.get("/messages", async (req, res) => {
 //REQUISITO 05
 app.post("/status", async (req, res) => {
     const { user } = req.headers
+
+
+    setInterval(async () => {
+        const tempoInativo = Date.now() - 10000
+        const filtro = { lastStatus: { $lt: tempoInativo } }
+        const usuarioInativo = await db.collection("participants").find(filtro).toArray()
+        usuarioInativo.map(async (user) => {
+            const atualizaMsg = {
+                from: user.name,
+                to: 'Todos',
+                text: 'sai da sala...',
+                type: 'status',
+                time: hora
+            }
+            await db.collection("messages").insertOne(atualizaMsg)
+        })
+        await db.collection("participants").deleteMany({ lastStatus: { $lt: tempoInativo } })
+
+    }, 15000)
+
 
 
     try {
