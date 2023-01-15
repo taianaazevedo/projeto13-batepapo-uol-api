@@ -181,6 +181,7 @@ app.post("/status", async (req, res) => {
             const filtro = { lastStatus: { $lt: tempoInativo } }
             const usuarioInativo = await db.collection("participants").find(filtro).toArray()
             usuarioInativo.map(async (user) => {
+                await db.collection("participants").deleteOne({ _id: ObjectId(user.id) })
                 const atualizaMsg = {
                     from: user.name,
                     to: 'Todos',
@@ -189,12 +190,12 @@ app.post("/status", async (req, res) => {
                     time: hora
                 }
                 await db.collection("messages").insertOne(atualizaMsg)
-                await db.collection("participants").deleteOne({ name: user.name })    
+
             })
         } catch (error) {
             console.log(error)
         }
-       
+
 
     }, 15000)
 
