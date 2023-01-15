@@ -92,7 +92,7 @@ app.post("/messages", async (req, res) => {
 
     const validaMensagem = mensagemSchema.validate({ to, text, type }, { abortEarly: false })
 
-    if(validaMensagem.error){
+    if (validaMensagem.error) {
         const erros = validaMensagem.error.details.map((err) => err.message)
         return res.status(422).send(erros)
     }
@@ -121,14 +121,30 @@ app.post("/messages", async (req, res) => {
 // REQUISITO 04
 app.get("/messages", async (req, res) => {
     const limit = Number(req.query.limit)
+    const { user } = req.headers
+
+     const filtro = {
+        $or: [
+            {
+                type: "private_message",
+                from: user
+            },
+            {
+                type: "private_message",
+                to: user
+            },
+            { type: "message" },
+            { type: "status" }
+        ]
+    };
 
 
     try {
-        const mensagens = await db.collection("messages").find().toArray()
+         if (limit < 1 || isNaN(limit)) return res.sendStatus(422)
 
-        if (limit < 1 || isNaN(limit)) return res.sendStatus(422)
-
-        if (limit > 0) return res.send(mensagens.slice(-limit).reverse())
+        const mensagens = await db.collection("messages").find(filtro).toArray()
+            
+        if (limit > 0) return res.send(mensagens.slice(-limit))
 
         res.send(mensagens)
 
