@@ -176,21 +176,25 @@ app.post("/status", async (req, res) => {
 
 
     setInterval(async () => {
-        const tempoInativo = Date.now() - 10000
-        const filtro = { lastStatus: { $lt: tempoInativo } }
-        const usuarioInativo = await db.collection("participants").find(filtro).toArray()
-        usuarioInativo.map(async (user) => {
-            const atualizaMsg = {
-                from: user.name,
-                to: 'Todos',
-                text: 'sai da sala...',
-                type: 'status',
-                time: hora
-            }
-            await db.collection("messages").insertOne(atualizaMsg)
-            await db.collection("participants").deleteOne({ name: user.name })
-
-        })
+        try {
+            const tempoInativo = Date.now() - 10000
+            const filtro = { lastStatus: { $lt: tempoInativo } }
+            const usuarioInativo = await db.collection("participants").find(filtro).toArray()
+            usuarioInativo.map(async (user) => {
+                const atualizaMsg = {
+                    from: user.name,
+                    to: 'Todos',
+                    text: 'sai da sala...',
+                    type: 'status',
+                    time: hora
+                }
+                await db.collection("messages").insertOne(atualizaMsg)
+                await db.collection("participants").deleteOne({ name: user.name })    
+            })
+        } catch (error) {
+            console.log(error)
+        }
+       
 
     }, 15000)
 
