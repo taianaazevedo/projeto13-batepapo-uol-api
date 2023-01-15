@@ -36,10 +36,10 @@ app.post("/participants", async (req, res) => {
         name: joi.string().required()
     })
 
-    const validar = nameSchema.validate({ name }, { abortEarly: false })
+    const validarNome = nameSchema.validate({ name }, { abortEarly: false })
 
-    if (validar.error) {
-        const erros = validar.error.details.map((err) => err.message)
+    if (validarNome.error) {
+        const erros = validarNome.error.details.map((err) => err.message)
         return res.status(422).send(erros)
     }
 
@@ -83,6 +83,19 @@ app.get("/participants", async (req, res) => {
 app.post("/messages", async (req, res) => {
     const { to, text, type } = req.body
     const { user } = req.headers
+
+    const mensagemSchema = joi.object({
+        to: joi.string().required(),
+        text: joi.string().required(),
+        type: joi.valid("private_message", "message").required()
+    })
+
+    const validaMensagem = mensagemSchema.validate({ to, text, type }, { abortEarly: false })
+
+    if(validaMensagem.error){
+        const erros = validaMensagem.error.details.map((err) => err.message)
+        return res.status(422).send(erros)
+    }
 
     try {
 
