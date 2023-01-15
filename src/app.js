@@ -12,6 +12,8 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
+const PORT = 5000
+
 const mongoClient = new MongoClient(process.env.DATABASE_URL)
 
 
@@ -92,7 +94,7 @@ app.post("/messages", async (req, res) => {
 
     const validaMensagem = mensagemSchema.validate({ to, text, type }, { abortEarly: false })
 
-    if(validaMensagem.error){
+    if (validaMensagem.error) {
         const erros = validaMensagem.error.details.map((err) => err.message)
         return res.status(422).send(erros)
     }
@@ -121,14 +123,16 @@ app.post("/messages", async (req, res) => {
 // REQUISITO 04
 app.get("/messages", async (req, res) => {
     const limit = Number(req.query.limit)
+    const { user } = req.headers
 
 
     try {
         const mensagens = await db.collection("messages").find().toArray()
 
-        if (limit < 1 || typeof limit === "string") return res.sendStatus(422)
+        if (limit < 1 || isNaN(limit)) return res.sendStatus(422)
 
-        if (limit > 0) return res.send(mensagens.slice(-limit))
+
+        if (limit > 0) return res.send(mensagens.slice(-limit).reverse())
 
         res.send(mensagens)
 
@@ -156,5 +160,5 @@ app.post("/status", async (req, res) => {
     }
 })
 
-const PORT = 5000
+
 app.listen(PORT, () => console.log(`Servidor rodando na porta: ${PORT}`))
