@@ -120,10 +120,9 @@ app.post("/messages", async (req, res) => {
 
 // REQUISITO 04
 app.get("/messages", async (req, res) => {
-    const limit = Number(req.query.limit)
+    const limit = req.query.limit ? Number(req.query.limit) : false
     const { user } = req.headers
-
-     const filtro = {
+    const filtro = {
         $or: [
             {
                 type: "private_message",
@@ -140,13 +139,17 @@ app.get("/messages", async (req, res) => {
 
 
     try {
-         if (limit < 1 || isNaN(limit)) return res.sendStatus(422)
 
         const mensagens = await db.collection("messages").find(filtro).toArray()
-            
-        if (limit > 0) return res.send(mensagens.slice(-limit))
 
-        res.send(mensagens)
+        if (limit < 0 || limit === 0 || isNaN(limit)) {
+            return res.sendStatus(422)            
+        } else if (limit > 0) {
+            return res.send(mensagens.slice(-limit).reverse())
+        } else {
+            res.send(mensagens.reverse())
+        }
+
 
     } catch (err) {
         console.log(err)
