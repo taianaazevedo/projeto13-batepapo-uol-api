@@ -3,7 +3,7 @@ import cors from "cors"
 import joi from "joi"
 import dotenv from "dotenv"
 import dayjs from "dayjs"
-import { MongoClient } from "mongodb"
+import { MongoClient, ObjectId } from "mongodb"
 
 dotenv.config()
 
@@ -177,19 +177,19 @@ app.post("/status", async (req, res) => {
 
     setInterval(async () => {
         try {
-            const tempoInativo = Date.now() - 10000
-            const filtro = { lastStatus: { $lt: tempoInativo } }
-            const usuarioInativo = await db.collection("participants").find(filtro).toArray()
+            const usuarioInativo = await db.collection("participants").find().toArray()
             usuarioInativo.map(async (user) => {
-                await db.collection("participants").deleteOne({ _id: ObjectId(user.id) })
-                const atualizaMsg = {
-                    from: user.name,
-                    to: 'Todos',
-                    text: 'sai da sala...',
-                    type: 'status',
-                    time: hora
+                if (Date.now() - user.lastStatus > 10000) {
+                    await db.collection("participants").deleteOne({ name: user.name })
+                    const atualizaMsg = {
+                        from: user.name,
+                        to: 'Todos',
+                        text: 'sai da sala...',
+                        type: 'status',
+                        time: hora
+                    }
+                    await db.collection("messages").insertOne(atualizaMsg)
                 }
-                await db.collection("messages").insertOne(atualizaMsg)
 
             })
         } catch (error) {
