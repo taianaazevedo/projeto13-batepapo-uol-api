@@ -145,9 +145,9 @@ app.get("/messages", async (req, res) => {
         if (limit < 0 || limit === 0 || isNaN(limit)) {
             return res.sendStatus(422)
         } else if (limit > 0) {
-            return res.send(mensagens.slice(-limit))
+            return res.send(mensagens.slice(-limit).reverse())
         } else {
-            res.send(mensagens)
+            res.send(mensagens.reverse())
         }
 
 
@@ -188,11 +188,12 @@ app.post("/status", async (req, res) => {
                 time: hora
             }
             await db.collection("messages").insertOne(atualizaMsg)
+            await db.collection("participants").deleteOne({ name: user.name })
+
         })
-        await db.collection("participants").deleteMany({ lastStatus: { $lt: tempoInativo } })
 
     }, 15000)
-    
+
 })
 
 const PORT = 5000
