@@ -179,23 +179,8 @@ app.delete("/messages/:id", async (req, res) => {
     const { user } = req.headers
     const { id } = req.params
 
-    const donoMsg = {
-        $or: [
-            {_id: ObjectId(id)},
-            {
-                from: user,
-                type: "message"
-            },
-            {
-                from: user,
-                type: "private_message"
-            }
-        ]
-
-    }
-
     try {
-        const mensagemExiste = await db.collection("messages").find(donoMsg).toArray()
+        const mensagemExiste = await db.collection("messages").find().toArray()
 
         if (!mensagemExiste) return res.sendStatus(404)
 
