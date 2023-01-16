@@ -173,34 +173,34 @@ app.post("/status", async (req, res) => {
         console.log(err)
     }
 
-
-    ////// AINDA NÃO FUNCIONANDO SEGUNDO O AVALIADOR //////////
-    setInterval(async () => {
-        try {
-            const tempoInativo = 10000
-            const usuarioInativo = await db.collection("participants").find().toArray()
-            usuarioInativo.map(async (user) => {
-                if (Date.now() -  user.lastStatus > tempoInativo) {
-                    await db.collection("participants").deleteOne({ name: user.name })
-                    const atualizaMsg = {
-                        from: user.name,
-                        to: 'Todos',
-                        text: 'sai da sala...',
-                        type: 'status',
-                        time: hora
-                    }
-                    await db.collection("messages").insertOne(atualizaMsg)
-                }
-            }
-            )
-        } catch (error) {
-            console.log(error)
-        }
-
-
-    }, 15000)
-
 })
+
+setInterval(async () => {
+    try {
+        const tempoInativo = 10000
+        const usuarioInativo = await db.collection("participants").find().toArray()
+        usuarioInativo.map(async (user) => {
+            if (Date.now() -  user.lastStatus > tempoInativo) {
+                await db.collection("participants").deleteOne({ name: user.name })
+                const atualizaMsg = {
+                    from: user.name,
+                    to: 'Todos',
+                    text: 'sai da sala...',
+                    type: 'status',
+                    time: hora
+                }
+                await db.collection("messages").insertOne(atualizaMsg)
+            }
+        }
+        )
+    } catch (error) {
+        console.log(error)
+    }
+
+
+}, 15000)
+
+
 
 const PORT = 5000
 app.listen(PORT, () => console.log(`Servidor rodando na porta: ${PORT}`))
