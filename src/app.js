@@ -3,7 +3,7 @@ import cors from "cors"
 import joi from "joi"
 import dotenv from "dotenv"
 import dayjs from "dayjs"
-import { MongoClient, ObjectId } from "mongodb"
+import { MongoClient, ObjectId, ReturnDocument } from "mongodb"
 
 dotenv.config()
 
@@ -175,12 +175,45 @@ app.post("/status", async (req, res) => {
 
 })
 
+app.delete("/messages/:id", async (req, res) => {
+    const { user } = req.headers
+    const { id } = req.params
+
+    const donoMsg = {
+        $or: [
+            {
+                _id: ObjectId(id),
+                from: user,
+                type: "message"
+            },
+            {
+                _id: ObjectId(id),
+                from: user,
+                type: "private_message"
+            }
+        ]
+
+    }
+
+    try {
+        const mensagemExiste = await db.collection("messages").find(donoMsg).toArray()
+        if (!mensagemExiste) return res.sendStatus(404)
+
+        await db.collection("messages").deleteOne({_id: ObjectId(id)})
+
+    } catch (error) {
+        console.log(error)
+    }
+
+
+})
+
 setInterval(async () => {
     try {
         const tempoInativo = 10000
         const usuarioInativo = await db.collection("participants").find().toArray()
         usuarioInativo.map(async (user) => {
-            if (Date.now() -  user.lastStatus > tempoInativo) {
+            if (Date.now() - user.lastStatus > tempoInativo) {
                 await db.collection("participants").deleteOne({ name: user.name })
                 const atualizaMsg = {
                     from: user.name,
