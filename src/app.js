@@ -180,15 +180,19 @@ app.delete("/messages/:id", async (req, res) => {
     const { id } = req.params
 
     try {
-        const mensagemExiste = await db.collection("messages").find().toArray()
+        const mensagemExiste = await db.collection("messages").findOne({ _id: ObjectId(id) })
 
-        if (!mensagemExiste) return res.sendStatus(404)
+        if (!mensagemExiste) {
+            return res.sendStatus(404)
+        } else if (user !== mensagemExiste.from) {
+            return res.sendStatus(401)
+        } else {
+            await db.collection("messages").deleteOne({ _id: ObjectId(id) })
 
-        if (user.name !== mensagemExiste.from) return res.sendStatus(401)   
+            res.sendStatus(200)
+        }
 
-        await db.collection("messages").deleteOne({ _id: ObjectId(id) })
 
-        res.sendStatus(200)
 
     } catch (error) {
         console.log(error)
