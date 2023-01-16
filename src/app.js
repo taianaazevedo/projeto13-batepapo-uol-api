@@ -25,7 +25,7 @@ const db = mongoClient.db()
 
 
 let hora = dayjs().format("HH:mm:ss")
-console.log(hora)
+
 
 
 //REQUISITO 01
@@ -179,7 +179,7 @@ app.post("/status", async (req, res) => {
         try {
             const tempoInativo = 10000
             const usuarioInativo = await db.collection("participants").find().toArray()
-            usuarioInativo.forEach(async (user) => {
+            usuarioInativo.map(async (user) => {
                 if (Date.now() -  user.lastStatus > tempoInativo) {
                     await db.collection("participants").deleteOne({ name: user.name })
                     const atualizaMsg = {
