@@ -177,21 +177,21 @@ app.post("/status", async (req, res) => {
     ////// AINDA NÃO FUNCIONANDO SEGUNDO O AVALIADOR //////////
     setInterval(async () => {
         try {
-            const tempoInativo = Date.now() - 10000
-            const usuarioInativo = await db.collection("participants").find({ lastStatus: { $lt: tempoInativo } }).toArray()
+            const tempoInativo = 10000
+            const usuarioInativo = await db.collection("participants").find().toArray()
             usuarioInativo.forEach(async (user) => {
-                await db.collection("participants").deleteOne({ name: user.name })
-                const atualizaMsg = {
-                    from: user.name,
-                    to: 'Todos',
-                    text: 'sai da sala...',
-                    type: 'status',
-                    time: hora
+                if (Date.now() -  user.lastStatus > 10000) {
+                    await db.collection("participants").deleteOne({ name: user.name })
+                    const atualizaMsg = {
+                        from: user.name,
+                        to: 'Todos',
+                        text: 'sai da sala...',
+                        type: 'status',
+                        time: hora
+                    }
+                    await db.collection("messages").insertOne(atualizaMsg)
                 }
-                await db.collection("messages").insertOne(atualizaMsg)
             }
-
-
             )
         } catch (error) {
             console.log(error)
