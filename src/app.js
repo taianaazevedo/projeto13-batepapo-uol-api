@@ -181,13 +181,12 @@ app.delete("/messages/:id", async (req, res) => {
 
     const donoMsg = {
         $or: [
+            {_id: ObjectId(id)},
             {
-                _id: ObjectId(id),
                 from: user,
                 type: "message"
             },
             {
-                _id: ObjectId(id),
                 from: user,
                 type: "private_message"
             }
@@ -197,13 +196,12 @@ app.delete("/messages/:id", async (req, res) => {
 
     try {
         const mensagemExiste = await db.collection("messages").find(donoMsg).toArray()
-        
-        if( user.name !== mensagemExiste.from) return res.sendStatus(401)
 
         if (!mensagemExiste) return res.sendStatus(404)
-        
-        
-        await db.collection("messages").deleteOne({_id: ObjectId(id)})
+
+        if (user.name !== mensagemExiste.from) return res.sendStatus(401)   
+
+        await db.collection("messages").deleteOne({ _id: ObjectId(id) })
 
         res.sendStatus(200)
 
