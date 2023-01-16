@@ -180,7 +180,7 @@ app.post("/status", async (req, res) => {
             const tempoInativo = 10000
             const usuarioInativo = await db.collection("participants").find().toArray()
             usuarioInativo.forEach(async (user) => {
-                if (Date.now() -  user.lastStatus > 10000) {
+                if (Date.now() -  user.lastStatus > tempoInativo) {
                     await db.collection("participants").deleteOne({ name: user.name })
                     const atualizaMsg = {
                         from: user.name,
