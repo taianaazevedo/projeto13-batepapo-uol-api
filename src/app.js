@@ -174,12 +174,13 @@ app.post("/status", async (req, res) => {
     }
 
 
-
+    ////// AINDA NÃO FUNCIONANDO SEGUNDO O AVALIADOR //////////
     setInterval(async () => {
         try {
             const tempoInativo = Date.now() - 10000
             const usuarioInativo = await db.collection("participants").find({ lastStatus: { $lt: tempoInativo } }).toArray()
-            usuarioInativo.map(async (user) => {
+            usuarioInativo.forEach(async (user) => {
+                await db.collection("participants").deleteOne({ name: user.name })
                 const atualizaMsg = {
                     from: user.name,
                     to: 'Todos',
@@ -188,8 +189,8 @@ app.post("/status", async (req, res) => {
                     time: hora
                 }
                 await db.collection("messages").insertOne(atualizaMsg)
-            },
-                await db.collection("participants").deleteMany({ lastStatus: { $lt: tempoInativo } })
+            }
+
 
             )
         } catch (error) {
