@@ -3,7 +3,7 @@ import cors from "cors"
 import joi from "joi"
 import dotenv from "dotenv"
 import dayjs from "dayjs"
-import { MongoClient, ObjectId, ReturnDocument } from "mongodb"
+import { MongoClient, ObjectId } from "mongodb"
 
 dotenv.config()
 
@@ -175,6 +175,8 @@ app.post("/status", async (req, res) => {
 
 })
 
+
+//BÔNUS DELETE
 app.delete("/messages/:id", async (req, res) => {
     const { user } = req.headers
     const { id } = req.params
@@ -192,8 +194,6 @@ app.delete("/messages/:id", async (req, res) => {
             res.sendStatus(200)
         }
 
-
-
     } catch (error) {
         console.log(error)
     }
@@ -201,6 +201,7 @@ app.delete("/messages/:id", async (req, res) => {
 
 })
 
+//FUNÇÃO QUE EXPULSA USUÁRIOS INATIVOS
 setInterval(async () => {
     try {
         const tempoInativo = 10000
